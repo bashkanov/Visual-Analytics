@@ -2,6 +2,6 @@
 
 Shiny dashboard project based on soccer dataset. 
 
-https://bashkanov.shinyapps.io/VAProj1/
+https://bashkanov.shinyapps.io/Visual-Analytics/
 
 Feature description comes soon. 

@@ -1,0 +1,13 @@
+name: Visual-Analytics
+title: Visual-Analytics
+username:
+account: bashkanov
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 337308
+bundleId: 1355803
+url: https://bashkanov.shinyapps.io/Visual-Analytics/
+when: 1525445195.9919
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: README.md

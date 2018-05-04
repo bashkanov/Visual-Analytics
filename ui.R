@@ -56,16 +56,16 @@ ui <- dashboardPage(
       ),
       tabItem(tabName = "2nd_point",
               fluidRow(
-                tabBox(
-                  tabPanel("Distribution plot", 
-                           plotOutput(outputId = "distribution_plot", height = "500px")
-                           ),
-                  tabPanel("Density plot", 
-                           plotOutput(outputId = "density_plot", height = "500px")
-                           )
-                ),
                 box(height = "564px", 
-                  plotOutput(outputId = "proportion_plot", height = "535px")
+                    plotOutput(outputId = "distribution_plot", height = "535px")
+                ),
+                tabBox(
+                  tabPanel("Proportion of scored/concevied goals",
+                           plotOutput(outputId = "proportion_scored", height = "500px")
+                           ),
+                  tabPanel("Proportion of home/away goals", 
+                           plotOutput(outputId = "proportion_plot", height = "500px")
+                  )
                 )
               ),
               fluidRow(

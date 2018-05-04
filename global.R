@@ -48,6 +48,23 @@ stage_league_summary <- function(dat, league){
   return(summ_stage)
 }
 
+
+win_hist <- function(dat, league, year){
+  selected_league_year <- dat %>%
+    filter(dat$league_name == league, grepl(year, dat$date)) %>%
+    select(home_team, home_team_goal, away_team, away_team_goal)
+  
+  selected_league_year <- selected_league_year %>%
+    mutate(home_team_win = ifelse(selected_league_year$home_team_goal > selected_league_year$away_team_goal, as.integer(1), as.integer(0)),
+           away_team_win = ifelse(selected_league_year$home_team_goal < selected_league_year$away_team_goal, as.integer(1), as.integer(0)),
+           drawn = ifelse(selected_league_year$home_team_goal == selected_league_year$away_team_goal, as.integer(1), as.integer(0)))%>%
+    select(home_team_win, away_team_win, drawn) %>%
+    summarise(home_team_win = sum(home_team_win), away_team_win = sum(away_team_win), drawn = sum(drawn)) %>%
+    gather(type, num, home_team_win:drawn)
+
+  return(selected_league_year)
+}
+
 league_summary_year <- function(dat, league, year){
   selected_league_year <- dat %>%
     filter(dat$league_name == league, grepl(year, dat$date)) %>%
@@ -74,43 +91,34 @@ league_summary_year <- function(dat, league, year){
   return(summ_together_y)
 }
 
-win_hist <- function(dat, league, year){
-  
-  selected_league_year <- dat %>%
-    filter(dat$league_name == league, grepl(year, dat$date)) %>%
-    select(home_team, home_team_goal, away_team, away_team_goal)
-  
-  selected_league_year <- selected_league_year %>%
-    mutate(home_team_win = ifelse(selected_league_year$home_team_goal > selected_league_year$away_team_goal, 1, 0),
-           away_team_win = ifelse(selected_league_year$home_team_goal < selected_league_year$away_team_goal, 1, 0))
-  
-  home_wins <- selected_league_year %>%
-    filter(home_team_win > 0) %>%
-    select(home_team, home_team_win) %>%
-    group_by(home_team, home_team_win) %>%
-    summarise(total_wins = sum(home_team_win)) %>%
-    ungroup() %>%
-    select(-one_of(c("home_team", "home_team_win"))) %>%
-    mutate(type = "home")
-  
-  away_wins <- selected_league_year %>%
-    filter(away_team_win > 0) %>%
-    select(away_team, away_team_win) %>%
-    group_by(away_team, away_team_win) %>%
-    summarise(total_wins = sum(away_team_win)) %>%
-    ungroup() %>%
-    select(-one_of(c("away_team", "away_team_win")))%>%
-    mutate(type = "away")
-  
-  return(total_wins_hist <- bind_rows(home_wins, away_wins))
-}
-
 goals_proportion <- function(dat_prop){
   dat_prop <- dat_prop %>%
     select(team, total_goal, total_goal_home, total_goal_away) %>%
     gather(cond, goals, total_goal_home:total_goal_away) %>%
     mutate(difference = total_goal - goals)
   return(dat_prop)
+}
+
+prop_scor_con <- function(dat, league, year){
+  selected_league_years <- dat %>%
+    filter(dat$league_name == league, grepl(year, dat$date)) %>%
+    select(home_team, home_team_goal, away_team, away_team_goal)
+  
+  by_home_team <- selected_league_years %>%
+    group_by(home_team) %>%
+    summarise(scored_goals_home = sum(home_team_goal), concevied_goals_home = sum(away_team_goal))
+  
+  by_away_team <- selected_league_years %>%
+    group_by(away_team) %>%
+    summarise(scored_goals_away = sum(away_team_goal), concevied_goals_away = sum(home_team_goal))
+  
+  joined_table <- full_join(by_home_team, by_away_team, by=c("home_team" = "away_team"))
+  joined_table <- joined_table %>%
+    mutate(scored = scored_goals_home + scored_goals_away , concevied = concevied_goals_home + concevied_goals_away) %>%
+    select(-one_of(c("scored_goals_home", "scored_goals_away", "concevied_goals_home", "concevied_goals_away"))) %>%
+    gather(cond, goals, scored:concevied)
+  
+  return(joined_table)
 }
 
 average_per_month <- function(dat, league, year){
@@ -156,10 +164,8 @@ availability_check <- function(dat, league, year){
   return(ifelse(league %in% selected_leagues, TRUE, FALSE))
 }
 
-
 dat <- read_rds("Data/european_soccer.rds")
 league_names <- c(unique(dat$league_name))
-league_names
 
 # -----
 
